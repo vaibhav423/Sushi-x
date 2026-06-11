@@ -1,15 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="fire.sushi.ui">
-    <application android:label="Sushi UI">
-        <meta-data
-            android:name="xposedmodule"
-            android:value="true" />
-        <meta-data
-            android:name="xposeddescription"
-            android:value="Sushi UI Bridge for SystemUI" />
-        <meta-data
-            android:name="xposedminversion"
-            android:value="82" />
-    </application>
+    <application
+        android:label="Sushi UI"
+        android:description="BeanShell socket bridge for SystemUI" />
 </manifest>

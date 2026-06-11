@@ -26,6 +26,6 @@ android {
 }
 
 dependencies {
-    compileOnly("de.robv.android.xposed:api:82")
+    compileOnly("io.github.libxposed:api:101.0.1")
     implementation(files("libs/bsh-2.1.1.jar"))
 }

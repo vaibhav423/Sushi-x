@@ -1,36 +1,29 @@
 package fire.sushi.ui;
 
 import android.app.Application;
-import android.content.Context;
-import de.robv.android.xposed.IXposedHookLoadPackage;
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
+import java.lang.reflect.Method;
+import io.github.libxposed.api.XposedModule;
+import io.github.libxposed.api.XposedModuleInterface.ModuleLoadedParam;
 
-public class SushiLspModule implements IXposedHookLoadPackage {
+public class SushiLspModule extends XposedModule {
     private static boolean serverStarted = false;
 
     @Override
-    public void handleLoadPackage(final LoadPackageParam lpparam) throws Throwable {
-        if (!lpparam.packageName.equals("com.android.systemui")) {
-            return;
-        }
-
-        XposedBridge.log("SushiUI: SystemUI hooked successfully.");
-
-        // Hook Application.onCreate to ensure we have a valid Context to pass to BeanShell
-        XposedHelpers.findAndHookMethod(Application.class, "onCreate", new XC_MethodHook() {
-            @Override
-            protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                if (serverStarted) return;
+    public void onModuleLoaded(ModuleLoadedParam param) {
+        XposedModule.log("SushiUI: onModuleLoaded");
+        try {
+            Method onCreate = Application.class.getDeclaredMethod("onCreate");
+            getXposedInterface().hook(onCreate).intercept(chain -> {
+                chain.proceed();
+                if (serverStarted) return null;
                 serverStarted = true;
-                
-                Context systemUiContext = (Context) param.thisObject;
-                XposedBridge.log("SushiUI: Captured Context. Starting Socket Server...");
-                
-                SushiLspServer.start(systemUiContext);
-            }
-        });
+                Application app = (Application) chain.getThisObject();
+                XposedModule.log("SushiUI: starting server from Application.onCreate");
+                SushiLspServer.start(app);
+                return null;
+            });
+        } catch (NoSuchMethodException e) {
+            XposedModule.log("SushiUI: failed to hook Application.onCreate: " + e);
+        }
     }
 }
