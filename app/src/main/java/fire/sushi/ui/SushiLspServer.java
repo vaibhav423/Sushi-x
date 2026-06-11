@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import bsh.Interpreter;
-import io.github.libxposed.api.XposedModule;
+import de.robv.android.xposed.XposedBridge;
 
 public class SushiLspServer {
     private static final String SOCKET_NAME = "sushi-ui";
@@ -25,27 +25,27 @@ public class SushiLspServer {
 
     public static void start(Context context) {
         sMainHandler = new Handler(Looper.getMainLooper());
-
+        
         try {
             sBshInterpreter = new Interpreter();
             sBshInterpreter.set("context", context);
             sBshInterpreter.set("handler", sMainHandler);
             sBshInterpreter.set("vars", sGlobalVariables);
-            XposedModule.log("SushiUI: BeanShell Interpreter initialized.");
+            XposedBridge.log("SushiUI: BeanShell Interpreter initialized.");
         } catch (Exception e) {
-            XposedModule.log("SushiUI: Failed to init BeanShell: " + e);
+            XposedBridge.log("SushiUI: Failed to init BeanShell: " + e);
         }
 
         new Thread(() -> {
             ExecutorService executor = Executors.newCachedThreadPool();
             try (LocalServerSocket server = new LocalServerSocket(SOCKET_NAME)) {
-                XposedModule.log("SushiUI: Listening on @" + SOCKET_NAME);
+                XposedBridge.log("SushiUI: Listening on @" + SOCKET_NAME);
                 while (true) {
                     final LocalSocket client = server.accept();
                     executor.submit(() -> handleClient(client));
                 }
             } catch (Exception e) {
-                XposedModule.log("SushiUI: Server socket error: " + e);
+                XposedBridge.log("SushiUI: Server socket error: " + e);
             }
         }).start();
     }
@@ -55,7 +55,7 @@ public class SushiLspServer {
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
             out = new PrintWriter(client.getOutputStream(), true);
-
+            
             String line = in.readLine();
             if (line != null) {
                 String[] args = line.split(" ");
@@ -69,7 +69,7 @@ public class SushiLspServer {
                     Object res = sBshInterpreter.eval(code);
                     out.println(res != null ? res.toString() : "OK");
                 } else if ("hello".equals(args[0])) {
-                    out.println("Hello from SushiUI (SystemUI - Modern API)!");
+                    out.println("Hello from SushiUI (SystemUI Hooked!)");
                 } else {
                     out.println("Unknown UI command");
                 }
@@ -77,7 +77,7 @@ public class SushiLspServer {
         } catch (Exception e) {
             StringWriter sw = new StringWriter();
             e.printStackTrace(new PrintWriter(sw));
-            XposedModule.log("SushiUI eval error:\n" + sw.toString());
+            XposedBridge.log("SushiUI eval error:\n" + sw.toString());
             if (out != null) {
                 out.println("ERROR: " + e.getMessage() + "\n" + sw.toString());
             }

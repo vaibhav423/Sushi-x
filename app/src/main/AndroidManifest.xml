@@ -2,6 +2,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="fire.sushi.ui">
     <application
-        android:label="@string/app_name"
-        android:description="@string/description" />
+        android:label="Sushi UI"
+        android:icon="@android:drawable/sym_def_app_icon">
+        <meta-data
+            android:name="xposedmodule"
+            android:value="true" />
+        <meta-data
+            android:name="xposeddescription"
+            android:value="BeanShell socket bridge for SystemUI" />
+        <meta-data
+            android:name="xposedminversion"
+            android:value="82" />
+        <meta-data
+            android:name="xposedscope"
+            android:resource="@array/xposedscope" />
+    </application>
 </manifest>
